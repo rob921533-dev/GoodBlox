@@ -21,12 +21,7 @@
         }
       }
     }
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script>
-  window.SUPABASE_URL = "https://your-project-ref.supabase.co";
-  window.SUPABASE_ANON_KEY = "your-anon-public-key";
-</script>
-<script src="app.js"></script>
+
     if (children !== undefined && children !== null) {
       arr = Array.isArray(children) ? children : [children];
       for (i = 0; i < arr.length; i++) {
