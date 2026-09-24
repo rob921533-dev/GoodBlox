@@ -1,12 +1,12 @@
 (function () {
   "use strict";
 
+  console.log("[GoodBlox] Initializing application...");
+
+  // 1. DOM Helper Functions
   function h(tag, props, children) {
     var el = document.createElement(tag);
-    var k;
-    var arr;
-    var i;
-    var c;
+    var k, arr, i, c;
 
     if (props) {
       for (k in props) {
@@ -23,11 +23,7 @@
     }
 
     if (children !== undefined && children !== null) {
-      if (Array.isArray(children)) {
-        arr = children;
-      } else {
-        arr = [children];
-      }
+      arr = Array.isArray(children) ? children : [children];
       for (i = 0; i < arr.length; i++) {
         c = arr[i];
         if (typeof c === "string" || typeof c === "number") {
@@ -41,10 +37,10 @@
   }
 
   function $(selector, parent) {
-    var p = parent || document;
-    return p.querySelector(selector);
+    return (parent || document).querySelector(selector);
   }
 
+  // 2. Constants & Helpers
   var CATEGORY_ICON = {
     Adventure: "Adv",
     Obby: "Run",
@@ -107,6 +103,7 @@
     return svg;
   }
 
+  // 3. Application State
   var STATE = {
     user: null,
     profile: null,
@@ -116,13 +113,22 @@
     currentSearchToken: 0
   };
 
+  // 4. Supabase Client Initialization
   var supabase = null;
-  if (window.supabase && window.supabase.createClient) {
+  if (window.supabase && typeof window.supabase.createClient === "function") {
     var url = window.SUPABASE_URL || "";
     var key = window.SUPABASE_ANON_KEY || "";
-    supabase = window.supabase.createClient(url, key);
+    if (url && key) {
+      supabase = window.supabase.createClient(url, key);
+      console.log("[GoodBlox] Supabase client ready.");
+    } else {
+      console.warn("[GoodBlox] Supabase credentials (SUPABASE_URL / SUPABASE_ANON_KEY) are missing.");
+    }
+  } else {
+    console.warn("[GoodBlox] Supabase SDK script tag not found.");
   }
 
+  // 5. Auth Service
   var GBAuth = {
     getUser: function () {
       if (!supabase) {
@@ -133,6 +139,8 @@
           return res.data.user;
         }
         return null;
+      }).catch(function () {
+        return null;
       });
     },
     getProfile: function (userId) {
@@ -140,7 +148,9 @@
         return Promise.resolve(null);
       }
       return supabase.from("profiles").select("*").eq("id", userId).single().then(function (res) {
-        return res.data;
+        return res.data || null;
+      }).catch(function () {
+        return null;
       });
     },
     signOut: function () {
@@ -155,6 +165,7 @@
     }
   };
 
+  // 6. API Service
   var GBApi = {
     listGames: function (opts) {
       if (!supabase) {
@@ -257,6 +268,7 @@
     }
   };
 
+  // 7. Modal Component
   function closeModal() {
     if (STATE.launchTimer) {
       clearInterval(STATE.launchTimer);
@@ -299,6 +311,7 @@
     }
   }
 
+  // 8. Search System
   function runSearch(query) {
     var box = $("#searchResults");
     if (!box) {
@@ -325,10 +338,7 @@
     var p2 = GBApi.listProfiles(200).then(function (list) {
       var filtered = [];
       var q = trimmed.toLowerCase();
-      var i;
-      var p;
-      var u;
-      var d;
+      var i, p, u, d;
 
       for (i = 0; i < list.length; i++) {
         p = list[i];
@@ -401,6 +411,7 @@
     });
   }
 
+  // 9. Views & Page Rendering
   function renderHome() {
     var main = $("#mainContent");
     if (!main) {
@@ -505,6 +516,17 @@
     };
 
     load();
+
+    var searchInput = $("#gameSearchInput");
+    if (searchInput) {
+      var timer;
+      searchInput.addEventListener("input", function (e) {
+        clearTimeout(timer);
+        timer = setTimeout(function () {
+          load(e.target.value);
+        }, 250);
+      });
+    }
   }
 
   function renderMessages(recipientId) {
@@ -614,6 +636,7 @@
     });
   }
 
+  // 10. Router
   function route() {
     var raw = location.hash.replace(/^#\/?/, "") || "home";
     var parts = raw.split("/").filter(Boolean);
@@ -649,6 +672,7 @@
     }
   }
 
+  // 11. Event Actions
   var actions = {
     closeModal: function () {
       closeModal();
@@ -729,7 +753,7 @@
               body.appendChild(h("div", { style: "text-align:center;padding:14px 0 4px" }, [
                 h("div", { style: "font-size:24px;font-weight:bold;color:#10b981;margin-bottom:12px" }, "[ OK ]"),
                 h("h3", { style: "margin:0 0 8px;font-size:18px" }, "Game client not installed"),
-                h("p", { style: "color:var(--muted);margin:0 0 20px;font-size:14px" }, "In a full build, this would open " + game.name + " inside the GoodBlox game client. GoodBlox does not execute external programs from the browser."),
+                h("p", { style: "color:var(--muted);margin:0 0 20px;font-size:14px" }, "In a full build, this would open " + game.name + " inside the GoodBlox game client."),
                 h("button", { className: "btn btn-primary", "data-action": "closeModal" }, "Close")
               ]));
             }
@@ -739,6 +763,7 @@
     }
   };
 
+  // 12. App Initialization
   function initEvents() {
     document.body.addEventListener("click", function (e) {
       var actionEl = null;
@@ -795,168 +820,4 @@
   }
 
   document.addEventListener("DOMContentLoaded", init);
-})();(function () {
-  "use strict";
-
-  var $ = function (s, p) {
-    return (p || document).querySelector(s);
-  };
-
-  var $$ = function (s, p) {
-    return Array.prototype.slice.call(
-      (p || document).querySelectorAll(s)
-    );
-  };
-
-  var esc = function (str) {
-    if (str === null || str === undefined) {
-      return "";
-    }
-    var s = String(str);
-    s = s.replace(/&/g, "&");
-    s = s.replace(//g, ">");
-    s = s.replace(/"/g, """);
-    s = s.replace(/'/g, "'");
-    return s;
-  };
-
-  var CATEGORY_ICON = {
-    Adventure: "Adv",
-    Obby: "Run",
-    Simulator: "Sim",
-    Tycoon: "Tyc",
-    Roleplay: "RP",
-    Action: "Act"
-  };
-
-  var GRADIENTS = [
-    "#4f46e5, #06b6d4",
-    "#f59e0b, #ef4444",
-    "#10b981, #3b82f6",
-    "#8b5cf6, #ec4899",
-    "#6366f1, #14b8a6"
-  ];
-
-  function pickGrad(id) {
-    var hash = 0;
-    var str = String(id || "default");
-    for (var i = 0; i < str.length; i++) {
-      hash = (hash << 5) - hash + str.charCodeAt(i);
-      hash |= 0;
-    }
-    return GRADIENTS[
-      Math.abs(hash) % GRADIENTS.length
-    ];
-  }
-
-  function avatarHTML(avatarUrl, size) {
-    var s = size || 36;
-    if (avatarUrl) {
-      return [
-        '(function () {
-  "use strict";
-
-  // --- Helpers & Utilities ---
-  var $ = function (s, p) {
-    return (p || document).querySelector(s);
-  };
-
-  var $$ = function (s, p) {
-    return Array.prototype.slice.call((p || document).querySelectorAll(s));
-  };
-
-  var esc = function (str) {
-    if (str === null || str === undefined) return String();
-    var s = String(str);
-    s = s.replace(/&/g, "&");
-    s = s.replace(//g, ">");
-    s = s.replace(new RegExp(String.fromCharCode(34), "g"), """);
-    s = s.replace(new RegExp(String.fromCharCode(39), "g"), "'");
-    return s;
-  };
-
-  var CATEGORY_ICON = {
-    Adventure: "Adv",
-    Obby: "Run",
-    Simulator: "Sim",
-    Tycoon: "Tyc",
-    Roleplay: "RP",
-    Action: "Act"
-  };
-
-  var GRADIENTS = [
-    "#4f46e5, #06b6d4",
-    "#f59e0b, #ef4444",
-    "#10b981, #3b82f6",
-    "#8b5cf6, #ec4899",
-    "#6366f1, #14b8a6"
-  ];
-
-  function pickGrad(id) {
-    var hash = 0;
-    var str = String(id || "default");
-    for (var i = 0; i < str.length; i++) {
-      hash = (hash << 5) - hash + str.charCodeAt(i);
-      hash |= 0;
-    }
-    return GRADIENTS[Math.abs(hash) % GRADIENTS.length];
-  }
-
-  function avatarHTML(avatarUrl, size) {
-    var s = size || 36;
-    if (avatarUrl) {
-      return [
-        '(function () {
-  "use strict";
-
-  // --- Helpers & Utilities ---
-  var $ = function (s, p) {
-    return (p || document).querySelector(s);
-  };
-
-  var $$ = function (s, p) {
-    return Array.prototype.slice.call((p || document).querySelectorAll(s));
-  };
-
-  var esc = function (str) {
-    if (str === null || str === undefined) return "";
-    var s = String(str);
-    s = s.replace(/&/g, "&");
-    s = s.replace(//g, ">");
-    s = s.replace(/"/g, """);
-    s = s.replace(/'/g, "'");
-    return s;
-  };
-
-  var CATEGORY_ICON = {
-    Adventure: "Adv",
-    Obby: "Run",
-    Simulator: "Sim",
-    Tycoon: "Tyc",
-    Roleplay: "RP",
-    Action: "Act"
-  };
-
-  var GRADIENTS = [
-    "#4f46e5, #06b6d4",
-    "#f59e0b, #ef4444",
-    "#10b981, #3b82f6",
-    "#8b5cf6, #ec4899",
-    "#6366f1, #14b8a6"
-  ];
-
-  function pickGrad(id) {
-    var hash = 0;
-    var str = String(id || "default");
-    for (var i = 0; i < str.length; i++) {
-      hash = (hash << 5) - hash + str.charCodeAt(i);
-      hash |= 0;
-    }
-    return GRADIENTS[Math.abs(hash) % GRADIENTS.length];
-  }
-
-  function avatarHTML(avatarUrl, size) {
-    var s = size || 36;
-    if (avatarUrl) {
-      return [
-        '
+})();
