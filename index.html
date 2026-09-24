@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#070910">
+<meta name="description" content="GoodBlox — discover, play and create games in your browser.">
+<title>GoodBlox — Discover, Play, Create</title>
+<link rel="icon" href="assets/logo.svg">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- ---------- LOADING ---------- -->
+<div id="bootScreen" style="position:fixed;inset:0;display:grid;place-items:center;z-index:999;background:var(--bg)">
+  <div style="text-align:center">
+    <div class="spinner"></div>
+    <div style="color:var(--muted);font-size:14px">Starting GoodBlox…</div>
+  </div>
+</div>
+
+<!-- ---------- CONFIG ERROR ---------- -->
+<div id="configError" class="hidden" style="position:relative;z-index:1;min-height:100vh;display:grid;place-items:center;padding:24px">
+  <div class="card" style="max-width:560px">
+    <div style="font-size:44px;margin-bottom:12px">⚠️</div>
+    <h1 style="margin:0 0 10px;font-size:22px">GoodBlox is not configured</h1>
+    <p style="color:var(--muted);line-height:1.6;margin:0 0 18px" id="configErrorText">
+      Open <code>config.js</code> and add your Supabase project URL and public anon key.
+      See <code>README.md</code> for full instructions.
+    </p>
+    <pre style="background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:14px;font-size:12.5px;overflow-x:auto;color:var(--muted)">window.GOODBLOX_CONFIG = {
+  SUPABASE_URL: "https://YOUR-PROJECT.supabase.co",
+  SUPABASE_ANON_KEY: "eyJ...",
+};</pre>
+  </div>
+</div>
+
+<!-- ---------- APP SHELL ---------- -->
+<div id="appShell" class="hidden">
+  <aside class="sidebar">
+    <div class="logo">
+      <div class="logo-mark">G</div>
+      <div class="logo-text">Good<span>Blox</span></div>
+    </div>
+    <nav class="nav-group" id="mainNav" aria-label="Main navigation"></nav>
+    <div class="sidebar-spacer"></div>
+    <nav class="nav-group" id="footNav" aria-label="Account navigation"></nav>
+    <div class="sidebar-user" id="sidebarUser" data-action="nav" data-to="profile" role="button" tabindex="0"></div>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <div class="logo mobile-logo" style="padding:0">
+        <div class="logo-mark">G</div>
+      </div>
+      <div class="searchbox">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.6-3.6"/></svg>
+        <input id="globalSearch" type="search" placeholder="Search games and players…" aria-label="Search" autocomplete="off">
+        <div id="searchResults" class="search-results hidden"></div>
+      </div>
+      <div class="topbar-actions">
+        <button class="btn btn-primary btn-sm" data-action="nav" data-to="create" title="Create a game">
+          <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+          <span class="label-desktop">Create</span>
+        </button>
+        <button class="icon-btn" data-action="nav" data-to="notifications" aria-label="Notifications">
+          <svg viewBox="0 0 24 24"><path d="M18 16v-5a6 6 0 1 0-12 0v5l-2 3h16z"/><path d="M10 21h4"/></svg>
+          <span class="ping hidden" id="topNotifBadge">0</span>
+        </button>
+        <button class="icon-btn" id="topAvatarBtn" data-action="nav" data-to="profile" aria-label="Your profile"></button>
+      </div>
+    </header>
+
+    <main class="view" id="view" tabindex="-1">
+      <div class="skeleton-grid">
+        <div class="skeleton skeleton-card"></div>
+        <div class="skeleton skeleton-card"></div>
+        <div class="skeleton skeleton-card"></div>
+        <div class="skeleton skeleton-card"></div>
+      </div>
+    </main>
+  </div>
+
+  <nav class="bottomnav" aria-label="Mobile navigation">
+    <div class="bottomnav-inner" id="bottomNav"></div>
+  </nav>
+</div>
+
+<div class="toasts" id="toasts" aria-live="polite" aria-atomic="false"></div>
+<div id="modalRoot"></div>
+
+<!-- ---------- SCRIPTS ---------- -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="config.js"></script>
+<script src="supabase.js"></script>
+<script src="auth.js"></script>
+<script src="api.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

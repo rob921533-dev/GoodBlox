@@ -1,0 +1,13 @@
+{
+  "name": "goodblox",
+  "version": "1.0.0",
+  "private": true,
+  "description": "GoodBlox — an original browser gaming/social platform powered by Supabase.",
+  "license": "MIT",
+  "scripts": {
+    "start": "npx --yes serve -l 5173 .",
+    "dev": "npx --yes serve -l 5173 ."
+  },
+  "keywords": ["supabase", "gaming", "platform", "spa"],
+  "author": "GoodBlox"
+}

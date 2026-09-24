@@ -1,0 +1,8 @@
+{
+  "appId": "com.goodblox.app",
+  "appName": "GoodBlox",
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "https"
+  }
+}

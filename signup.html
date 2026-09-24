@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#070910">
+<title>Sign up — GoodBlox</title>
+<link rel="icon" href="assets/logo.svg">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div id="authScreen">
+  <div class="auth-wrap">
+    <div class="auth-brand">
+      <div class="logo-mark">G</div>
+      <h1>Join GoodBlox</h1>
+      <p>Create your free account and start playing, building and hanging out with friends.</p>
+      <ul class="auth-features">
+        <li>✅ Free forever</li>
+        <li>✅ No download required</li>
+        <li>✅ Publish your own games</li>
+        <li>✅ Realtime chat with friends</li>
+      </ul>
+    </div>
+
+    <div class="auth-card">
+      <h2>Create your account</h2>
+      <p class="sub">You'll be able to customise your avatar after signing up.</p>
+
+      <div id="configNotice" class="error-banner hidden"></div>
+      <div class="form-error" id="formError"></div>
+      <div class="form-success" id="formSuccess"></div>
+
+      <form id="signupForm" novalidate>
+        <label class="field"><span>Username</span>
+          <input class="input" id="username" autocomplete="username" maxlength="20" placeholder="CoolBuilder99" required>
+        </label>
+        <label class="field"><span>Display name</span>
+          <input class="input" id="displayName" autocomplete="nickname" maxlength="40" placeholder="Cool Builder">
+        </label>
+        <label class="field"><span>Email</span>
+          <input class="input" id="email" type="email" autocomplete="email" placeholder="you@example.com" required>
+        </label>
+        <label class="field"><span>Password</span>
+          <input class="input" id="password" type="password" autocomplete="new-password" placeholder="At least 6 characters" required>
+        </label>
+        <label class="field"><span>Confirm password</span>
+          <input class="input" id="password2" type="password" autocomplete="new-password" placeholder="Repeat password" required>
+        </label>
+        <button class="btn btn-primary btn-block" type="submit" id="submitBtn">Create Account</button>
+        <p class="auth-note">
+          By signing up you agree to keep GoodBlox a friendly place.
+          If email confirmation is enabled in Supabase, you will receive a confirmation email.
+        </p>
+      </form>
+
+      <div class="auth-switch">
+        Already have an account? <a class="link" href="login.html">Sign in</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toasts" id="toasts"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="config.js"></script>
+<script src="supabase.js"></script>
+<script src="auth.js"></script>
+<script src="api.js"></script>
+<script>
+(function(){
+  "use strict";
+  const $ = s => document.querySelector(s);
+  const toast = (msg, type) => {
+    const host = $("#toasts");
+    const el = document.createElement("div");
+    el.className = "toast " + (type || "");
+    el.textContent = msg;
+    host.appendChild(el);
+    setTimeout(() => { el.classList.add("out"); setTimeout(() => el.remove(), 300); }, 3600);
+  };
+
+  if (!GBAuth.isConfigured()){
+    $("#configNotice").classList.remove("hidden");
+    $("#configNotice").textContent = window.gbSupabaseError || "Supabase is not configured. Open config.js.";
+    $("#submitBtn").disabled = true;
+  }
+
+  /* If already signed in, redirect */
+  GBAuth.isConfigured() && GBAuth.getSession().then(s => {
+    if (s) location.replace("index.html");
+  }).catch(()=>{});
+
+  const USERNAME_RE = /^[A-Za-z0-9_]{3,20}$/;
+  const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  function validate({ username, email, password, password2 }){
+    if (!username) return "Please choose a username.";
+    if (!USERNAME_RE.test(username))
+      return "Username must be 3–20 characters and can only contain letters, numbers and underscores.";
+    if (!email) return "Please enter your email.";
+    if (!EMAIL_RE.test(email)) return "Please enter a valid email address.";
+    if (!password) return "Please choose a password.";
+    if (password.length < 6) return "Password must be at least 6 characters.";
+    if (password !== password2) return "Passwords do not match.";
+    return null;
+  }
+
+  $("#signupForm").addEventListener("submit", async e => {
+    e.preventDefault();
+    const errEl = $("#formError"), okEl = $("#formSuccess");
+    errEl.textContent = ""; okEl.textContent = "";
+
+    const username = $("#username").value.trim();
+    const displayName = $("#displayName").value.trim() || username;
+    const email = $("#email").value.trim();
+    const password = $("#password").value;
+    const password2 = $("#password2").value;
+
+    const bad = validate({ username, email, password, password2 });
+    if (bad){ errEl.textContent = bad; return; }
+
+    const btn = $("#submitBtn");
+    btn.disabled = true;
+    btn.textContent = "Creating account…";
+
+    try {
+      /* Check username availability against the profiles table */
+      const available = await GBApi.usernameAvailable(username);
+      if (!available){
+        errEl.textContent = "That username is already taken. Try another.";
+        btn.disabled = false; btn.textContent = "Create Account";
+        return;
+      }
+
+      const data = await GBAuth.signUp({
+        email, password,
+        username,
+        displayName
+      });
+
+      /* Supabase returns a session if email confirmation is off, otherwise user is null */
+      if (data.session){
+        toast("Account created. Welcome to GoodBlox!", "ok");
+        setTimeout(() => location.replace("index.html"), 400);
+      } else {
+        okEl.textContent =
+          "Account created. Please check your email to confirm your address, then sign in.";
+        btn.textContent = "Account created";
+        setTimeout(() => location.replace("login.html"), 3500);
+      }
+    } catch (ex) {
+      errEl.textContent = GBAuth.friendlyError(ex);
+      console.error(ex);
+      btn.disabled = false;
+      btn.textContent = "Create Account";
+    }
+  });
+})();
+</script>
+</body>
+</html>
