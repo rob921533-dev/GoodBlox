@@ -116,8 +116,8 @@
   // 4. Supabase Client Initialization
   var supabase = null;
   if (window.supabase && typeof window.supabase.createClient === "function") {
-    var url = window.SUPABASE_URL || "";
-    var key = window.SUPABASE_ANON_KEY || "";
+    var url = window.https://yxlmpfhmddadjormqdln.supabase.co || "";
+    var key = window.sb_publishable_9qWjySjK_apijQQn_UxrSQ_hwxGVj8V || "";
     if (url && key) {
       supabase = window.supabase.createClient(url, key);
       console.log("[GoodBlox] Supabase client ready.");
