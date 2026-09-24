@@ -2,28 +2,24 @@
   "use strict";
 
   // --- Helpers & Utilities ---
-  var $ = function (s, p) { 
-    return (p || document).querySelector(s); 
-  };
-  
-  var $$ = function (s, p) { 
-    return Array.prototype.slice.call((p || document).querySelectorAll(s)); 
+  var $ = function (s, p) {
+    return (p || document).querySelector(s);
   };
 
-  var quoteReg = new RegExp(String.fromCharCode(34), "g");
-  var aposReg = new RegExp(String.fromCharCode(39), "g");
+  var $$ = function (s, p) {
+    return Array.prototype.slice.call((p || document).querySelectorAll(s));
+  };
 
   var esc = function (str) {
     if (str === null || str === undefined) return "";
     var s = String(str);
     s = s.replace(/&/g, "&");
     s = s.replace(//g, ">");
-    s = s.replace(quoteReg, """);
-    s = s.replace(aposReg, "'");
+    s = s.replace(/"/g, """);
+    s = s.replace(/'/g, "'");
     return s;
   };
 
-  // Replaced Emojis with ASCII text to prevent byte-reading errors
   var CATEGORY_ICON = {
     Adventure: "Adv",
     Obby: "Run",
@@ -54,4 +50,5 @@
   function avatarHTML(avatarUrl, size) {
     var s = size || 36;
     if (avatarUrl) {
-      return '
+      return [
+        '
