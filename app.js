@@ -10,8 +10,6 @@
     return Array.prototype.slice.call((p || document).querySelectorAll(s)); 
   };
 
-  // We use String.fromCharCode to completely avoid triggering 
-  // "invalid escape sequence" errors on old parsers.
   var quoteReg = new RegExp(String.fromCharCode(34), "g");
   var aposReg = new RegExp(String.fromCharCode(39), "g");
 
@@ -25,13 +23,14 @@
     return s;
   };
 
-  var CATEGORY_EMOJI = {
-    Adventure: "⚔️",
-    Obby: "🏃",
-    Simulator: "📊",
-    Tycoon: "🏭",
-    Roleplay: "🎭",
-    Action: "💥"
+  // Replaced Emojis with ASCII text to prevent byte-reading errors
+  var CATEGORY_ICON = {
+    Adventure: "Adv",
+    Obby: "Run",
+    Simulator: "Sim",
+    Tycoon: "Tyc",
+    Roleplay: "RP",
+    Action: "Act"
   };
 
   var GRADIENTS = [
